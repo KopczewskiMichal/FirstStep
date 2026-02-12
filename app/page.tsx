@@ -3,6 +3,17 @@
 import { useEffect, useRef, useState } from "react";
 import { PoseLandmarker, FilesetResolver, DrawingUtils } from "@mediapipe/tasks-vision";
 import { log } from "console";
+import { DrillController } from "./DrillController";
+
+
+const drawMirroredFrame = (video:HTMLVideoElement, canvas:HTMLCanvasElement, ctx:CanvasRenderingContext2D) => {
+  ctx.save();
+  ctx.translate(canvas.width, 0);
+  ctx.scale(-1, 1);
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  ctx.restore();
+  return canvas;
+};
 
 export default function PosePage() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -12,7 +23,19 @@ export default function PosePage() {
   const lastFrameTimeRef = useRef<number>(0);
   
   const [landmarker, setLandmarker] = useState<PoseLandmarker | null>(null);
-  const [isActive, setIsActive] = useState(false); // Domyślnie wyłączone
+  const [isActive, setIsActive] = useState(false);
+  const [currentLandmarks, setCurrentLandmarks] = useState<any>(null);
+
+  const offscreenCanvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      const canvas = document.createElement("canvas");
+      canvas.width = 640;
+      canvas.height = 480;
+      offscreenCanvasRef.current = canvas;
+    }
+  }, []);
 
   useEffect(() => {
     async function init() {
@@ -41,8 +64,12 @@ export default function PosePage() {
       if (!landmarker) return;
 
       stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { width: 640, height: 480 } 
-      });
+        video:{
+        width: { ideal: 640 }, 
+        height: { ideal: 480 },
+        frameRate:{ideal: 30, max: 60},
+        facingMode: "user" 
+      }});
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -63,7 +90,7 @@ export default function PosePage() {
         videoRef.current.srcObject = null;
       }
       
-      const ctx = canvasRef.current?.getContext("2d");
+      const ctx = canvasRef.current?.getContext("2d", {alpha: false});
       ctx?.clearRect(0, 0, canvasRef.current?.width || 0, canvasRef.current?.height || 0);
     }
 
@@ -81,25 +108,29 @@ const predictLoop = () => {
   
   if (lastFrameTimeRef.current !== 0) {
     const delta = now - lastFrameTimeRef.current;
-    const currentFps = 1000 / delta;
-    
-    if (Math.random() > 0.9) {
-      setFps(Math.round(currentFps));
-    }
+    if (Math.random() > 0.9) setFps(Math.round(1000 / delta));
   }
-  
   lastFrameTimeRef.current = now;
 
+  const video = videoRef.current;
+  const offCanvas = offscreenCanvasRef.current;
+  const visibleCanvas = canvasRef.current;
 
-  if (landmarker && videoRef.current && videoRef.current.readyState >= 2) {
-    const results = landmarker.detectForVideo(videoRef.current, now);
-    const ctx = canvasRef.current?.getContext("2d");
+  if (landmarker && video && video.readyState >= 2 && offCanvas && visibleCanvas) {
+    const offCtx = offCanvas.getContext("2d");
+    const visibleCtx = visibleCanvas.getContext("2d", { alpha: false });
 
-    if (ctx) {
-      ctx.clearRect(0, 0, canvasRef.current!.width, canvasRef.current!.height);
+    if (offCtx && visibleCtx) {
+      const mirroredFrame = drawMirroredFrame(video, offCanvas, offCtx);
+
+      const results = landmarker.detectForVideo(mirroredFrame, now);
       
+      visibleCtx.drawImage(mirroredFrame, 0, 0, visibleCanvas.width, visibleCanvas.height);
+
       if (results.landmarks && results.landmarks.length > 0) {
-        const drawingUtils = new DrawingUtils(ctx);
+        setCurrentLandmarks(results.landmarks);
+
+        const drawingUtils = new DrawingUtils(visibleCtx);
         for (const landmark of results.landmarks) {
           drawingUtils.drawConnectors(landmark, PoseLandmarker.POSE_CONNECTIONS);
           drawingUtils.drawLandmarks(landmark, { radius: 2 });
@@ -121,9 +152,9 @@ const predictLoop = () => {
         </span>
       </h1>
 
-      {isActive && (
+      {/* {isActive && (
         <p>{fps}</p>
-      )}
+      )} */}
 
       <div className="relative w-[640px] h-[480px] border border-zinc-800 bg-zinc-950 rounded-sm overflow-hidden">
         {!isActive && (
@@ -147,6 +178,8 @@ const predictLoop = () => {
         />
       </div>
 
+      {isActive && (<DrillController landmarks={currentLandmarks} isActive={isActive} />)}
+
       <button
         onClick={() => setIsActive(!isActive)}
         disabled={!landmarker}
@@ -162,4 +195,4 @@ const predictLoop = () => {
       {!landmarker && <p className="mt-4 animate-pulse text-xs text-zinc-600">Booting AI models...</p>}
     </div>
   );
-}
+  }
