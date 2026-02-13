@@ -10,21 +10,23 @@ export const DrillController = ({ landmarks, isActive }: Props) => {
   const [phase, setPhase] = useState<"IDLE" | "SET" | "GO" | "FINISHED">("IDLE");
   const [reactionTime, setReactionTime] = useState<number | null>(null);
   
-  const baselineY = useRef<number | null>(null);
+  const baselineX = useRef<number | null>(null);
   const startTime = useRef<number>(0);
 
   const hat_delay = 2000
 
   useEffect(() => {
     if (!landmarks || !landmarks[0]) return;
-    const hipY = landmarks[0][23].y;
 
-    if (phase === "SET" && baselineY.current === null) {
-      baselineY.current = hipY;
+    const closer_side_left = landmarks[0][11].z > landmarks[0][12].z // Z dodatnie oznacza że coś jest bliżej od strony przeciwnej.
+    const hipX = closer_side_left ? landmarks[0][23].x : landmarks[0][24]; // Uzywamy bliższego biodra
+
+    if (phase === "SET" && baselineX.current === null) {
+      baselineX.current = hipX;
     }
 
-    if (phase === "GO" && baselineY.current !== null) {
-      const movement = Math.abs(hipY - baselineY.current);
+    if (phase === "GO" && baselineX.current !== null) {
+      const movement = Math.abs(hipX - baselineX.current);
       if (movement > 0.2) { 
         setReactionTime(Math.round(performance.now() - startTime.current));
         setPhase("FINISHED");
@@ -35,13 +37,13 @@ export const DrillController = ({ landmarks, isActive }: Props) => {
   const startDrill = () => {
     setPhase("SET");
     setReactionTime(null);
-    baselineY.current = null;
+    baselineX.current = null;
 
-    const delay = hat_delay + Math.random() * 5000;
+    const set_to_start_delay = hat_delay + Math.random() * 5000;
     setTimeout(() => {
       setPhase("GO");
       startTime.current = performance.now();
-    }, delay);
+    }, set_to_start_delay);
   };
 
   return (

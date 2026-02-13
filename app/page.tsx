@@ -67,7 +67,7 @@ export default function PosePage() {
         video:{
         width: { ideal: 640 }, 
         height: { ideal: 480 },
-        frameRate:{ideal: 30, max: 60},
+        frameRate:{ideal: 30, max:40},
         facingMode: "user" 
       }});
 
@@ -130,6 +130,7 @@ const predictLoop = () => {
       if (results.landmarks && results.landmarks.length > 0) {
         setCurrentLandmarks(results.landmarks);
 
+        console.log(results.landmarks[0][11].z)
         const drawingUtils = new DrawingUtils(visibleCtx);
         for (const landmark of results.landmarks) {
           drawingUtils.drawConnectors(landmark, PoseLandmarker.POSE_CONNECTIONS);
