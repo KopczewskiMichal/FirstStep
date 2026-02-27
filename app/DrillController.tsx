@@ -24,10 +24,6 @@ export const DrillController = ({ landmarks, isActive }: Props) => {
     const hipX = centerOnLeft ? playerLandmarks[23].x : playerLandmarks[24].x; // Uzywamy bliższego biodra
     const groundWristPosition = centerOnLeft ? playerLandmarks[15] : playerLandmarks[16]
 
-    if (phase === "SET" && baselineX.current === null) {
-      baselineX.current = hipX;
-    }
-
     if (phase === "GO" && baselineX.current !== null) {
       const movement = Math.abs(hipX - baselineX.current);
       if (movement > 0.05) { 
@@ -43,6 +39,10 @@ export const DrillController = ({ landmarks, isActive }: Props) => {
     // gotowości do startu
     const ankleWristYDiff = Math.abs(playerLandmarks[28].y - groundWristPosition.y)
     if (phase === "IDLE" && ankleWristYDiff < 0.1) {
+      setTimeout(() => {
+        baselineX.current = hipX;    
+      }, hat_delay)
+
       startDrill()
     }
   }, [landmarks, phase]);
@@ -57,6 +57,7 @@ export const DrillController = ({ landmarks, isActive }: Props) => {
       setPhase("GO");
       startTime.current = performance.now();
     }, set_to_start_delay);
+
   };
 
   return (
