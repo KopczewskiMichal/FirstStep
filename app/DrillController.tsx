@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
+import { SourceTextModule } from "vm";
 
 interface Props {
   landmarks: any; 
@@ -9,7 +10,6 @@ interface Props {
 export const DrillController = ({ landmarks, isActive }: Props) => {
   const [phase, setPhase] = useState<"IDLE" | "SET" | "GO">("IDLE");
   const [reactionTime, setReactionTime] = useState<number | null>(null);
-  const [diff, setDiff] = useState<number | null>(null);
   
   const baselineX = useRef<number | null>(null);
   const startTime = useRef<number>(0);
@@ -68,7 +68,7 @@ export const DrillController = ({ landmarks, isActive }: Props) => {
       <div className="text-center font-mono">
         {(phase === "IDLE" || reactionTime === null) && <p className="text-zinc-500 text-sm">Take Position</p>}
         {phase === "SET" && <p className="text-yellow-500 text-2xl animate-pulse font-bold uppercase">Ready... SET...</p>}
-        {phase === "GO" && <p className="text-green-500 text-5xl font-black italic">HIT HIM!</p>}
+        {phase === "GO" && <p className="text-green-500 text-5xl font-black italic">HIT!</p>}
         {(phase === "IDLE" && reactionTime !== null) && (
           <div className="animate-bounce">
             <p className="text-white text-sm uppercase">Reaction Time</p>

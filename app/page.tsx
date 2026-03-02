@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { PoseLandmarker, FilesetResolver, DrawingUtils } from "@mediapipe/tasks-vision";
+import { PoseLandmarker, FilesetResolver, DrawingUtils, NormalizedLandmark } from "@mediapipe/tasks-vision";
 import { log } from "console";
 import { DrillController } from "./DrillController";
 
@@ -19,12 +19,11 @@ export default function PosePage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const requestRef = useRef<number | null>(null); 
-  const [fps, setFps] = useState(0);
   const lastFrameTimeRef = useRef<number>(0);
+  const landmarksRef = useRef<NormalizedLandmark[][] | null>(null);
   
   const [landmarker, setLandmarker] = useState<PoseLandmarker | null>(null);
   const [isActive, setIsActive] = useState(false);
-  const [currentLandmarks, setCurrentLandmarks] = useState<any>(null);
 
   const offscreenCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -108,7 +107,7 @@ const predictLoop = () => {
   
   if (lastFrameTimeRef.current !== 0) {
     const delta = now - lastFrameTimeRef.current;
-    if (Math.random() > 0.9) setFps(Math.round(1000 / delta));
+    // if (Math.random() > 0.9) setFps(Math.round(1000 / delta));
   }
   lastFrameTimeRef.current = now;
 
@@ -128,7 +127,7 @@ const predictLoop = () => {
       visibleCtx.drawImage(mirroredFrame, 0, 0, visibleCanvas.width, visibleCanvas.height);
 
       if (results.landmarks && results.landmarks.length > 0) {
-        setCurrentLandmarks(results.landmarks);
+        landmarksRef.current = results.landmarks
         const drawingUtils = new DrawingUtils(visibleCtx);
         for (const landmark of results.landmarks) {
           drawingUtils.drawConnectors(landmark, PoseLandmarker.POSE_CONNECTIONS);
@@ -177,7 +176,7 @@ const predictLoop = () => {
         />
       </div>
 
-      {isActive && (<DrillController landmarks={currentLandmarks} isActive={isActive} />)}
+      {isActive && (<DrillController landmarks={landmarksRef.current} isActive={isActive} />)}
 
       <button
         onClick={() => setIsActive(!isActive)}
