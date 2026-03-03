@@ -1,64 +1,66 @@
 "use client";
+import { NormalizedLandmark } from "@mediapipe/tasks-vision";
+import { log } from "console";
 import { useState, useEffect, useRef } from "react";
-import { SourceTextModule } from "vm";
 
-interface Props {
-  landmarks: any; 
-  isActive: boolean;
-}
-
-export const DrillController = ({ landmarks, isActive }: Props) => {
+export const DrillController = ({ landmarksRef, isActive }: { landmarksRef: React.MutableRefObject<NormalizedLandmark[][] | null>, isActive: boolean }) => {
   const [phase, setPhase] = useState<"IDLE" | "SET" | "GO">("IDLE");
   const [reactionTime, setReactionTime] = useState<number | null>(null);
   
   const baselineX = useRef<number | null>(null);
   const startTime = useRef<number>(0);
+  const rafId = useRef<number>(0);
 
-  const hat_delay = 2000
-  
-  useEffect(() => {
-    if (!landmarks || !landmarks[0]) return;
-    const playerLandmarks = landmarks[0]
+  const loop = () => {
+    const landmarks = landmarksRef.current
+    if (!landmarks || !landmarks[0] || !isActive) {
+      rafId.current = requestAnimationFrame(loop);
+      return;
+    }
 
-    const centerOnLeft = playerLandmarks[23].z > playerLandmarks[24].z // Z dodatnie oznacza że coś jest bliżej od strony przeciwnej, czytane z biodra
-    const hipX = centerOnLeft ? playerLandmarks[23].x : playerLandmarks[24].x; // Uzywamy bliższego biodra
-    const groundWristPosition = centerOnLeft ? playerLandmarks[15] : playerLandmarks[16]
+    const player = landmarks[0];
+    const centerOnLeft = player[23].z > player[24].z;
+    const hipX = centerOnLeft ? player[23].x : player[24].x;
+    const groundWristY = centerOnLeft ? player[15].y : player[16].y;
+    const ankleY = player[28].y;
+
+    const ankleWristYDiff = Math.abs(ankleY - groundWristY);
+    if (phase === "IDLE" && ankleWristYDiff < 0.1) {
+      startDrill(hipX); 
+    }
 
     if (phase === "GO" && baselineX.current !== null) {
       const movement = Math.abs(hipX - baselineX.current);
       if (movement > 0.05) { 
-        setReactionTime(Math.round(performance.now() - startTime.current));
-        console.log(startTime)
-        setTimeout(() => {
-        setPhase("IDLE")
-        }, 5000)
-        setPhase("IDLE");
+        const endTime = performance.now();
+        setReactionTime(Math.round(endTime - startTime.current));
+        baselineX.current = null;
+        
+        setTimeout(() => {setPhase("IDLE")}, 3000);
       }
     }
-    
-    // gotowości do startu
-    const ankleWristYDiff = Math.abs(playerLandmarks[28].y - groundWristPosition.y)
-    if (phase === "IDLE" && ankleWristYDiff < 0.1) {
-      setTimeout(() => {
-        baselineX.current = hipX;    
-      }, hat_delay)
 
-      startDrill()
-    }
-  }, [landmarks, phase]);
+    rafId.current = requestAnimationFrame(loop);
+  };
 
-  const startDrill = () => {
+  const startDrill = (initialHipX: number) => {
     setPhase("SET");
     setReactionTime(null);
-    baselineX.current = null;
+  
+    const hatDelay = 2000;
+    const randomDelay = Math.random() * 3000;
 
-    const set_to_start_delay = hat_delay + Math.random() * 5000;
     setTimeout(() => {
+      baselineX.current = initialHipX; 
       setPhase("GO");
       startTime.current = performance.now();
-    }, set_to_start_delay);
-
+    }, hatDelay + randomDelay);
   };
+
+  useEffect(() => {
+    rafId.current = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(rafId.current!);
+  }, [isActive, phase]); 
 
   return (
     <div className={`mt-8 p-6 rounded-xl border-4 transition-all ${
@@ -66,23 +68,11 @@ export const DrillController = ({ landmarks, isActive }: Props) => {
       phase === "SET" ? "border-yellow-500 bg-yellow-900/20" : "border-zinc-800"
     }`}>
       <div className="text-center font-mono">
-        {(phase === "IDLE" || reactionTime === null) && <p className="text-zinc-500 text-sm">Take Position</p>}
-        {phase === "SET" && <p className="text-yellow-500 text-2xl animate-pulse font-bold uppercase">Ready... SET...</p>}
-        {phase === "GO" && <p className="text-green-500 text-5xl font-black italic">HIT!</p>}
-        {(phase === "IDLE" && reactionTime !== null) && (
-          <div className="animate-bounce">
-            <p className="text-white text-sm uppercase">Reaction Time</p>
-            <p className="text-blue-400 text-6xl font-black">{reactionTime}ms</p>
-          </div>
-        )}
+         {phase === "IDLE" && <p className="...">Set up in stance to start</p>}
+         {phase === "SET" && <p className="...">DOWN!</p>}
+         {phase === "GO" && <p className="...">HIT!</p>}
+         {reactionTime && <p className="text-blue-400 text-6xl">{reactionTime}ms</p>}
       </div>
-
-      {/* <button
-        onClick={startDrill}
-        className="mt-6 w-full py-4 bg-white text-black font-bold uppercase tracking-widest hover:bg-zinc-200 transition-colors"
-      >
-        {phase === "FINISHED" ? "TRY AGAIN" : "START DRILL"}
-      </button> */}
     </div>
   );
 };

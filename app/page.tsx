@@ -176,7 +176,7 @@ const predictLoop = () => {
         />
       </div>
 
-      {isActive && (<DrillController landmarks={landmarksRef.current} isActive={isActive} />)}
+      {isActive && (<DrillController landmarksRef={landmarksRef} isActive={isActive} />)}
 
       <button
         onClick={() => setIsActive(!isActive)}
