@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { PoseLandmarker, FilesetResolver, DrawingUtils, NormalizedLandmark } from "@mediapipe/tasks-vision";
-import { log } from "console";
 import { DrillController } from "./DrillController";
 
 

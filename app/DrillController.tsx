@@ -1,9 +1,8 @@
 "use client";
 import { NormalizedLandmark } from "@mediapipe/tasks-vision";
-import { log } from "console";
 import { useState, useEffect, useRef } from "react";
 
-export const DrillController = ({ landmarksRef, isActive }: { landmarksRef: React.MutableRefObject<NormalizedLandmark[][] | null>, isActive: boolean }) => {
+export const DrillController = ({ landmarksRef, isActive }: { landmarksRef: React.RefObject<NormalizedLandmark[][] | null>, isActive: boolean }) => {
   const [phase, setPhase] = useState<"IDLE" | "SET" | "GO">("IDLE");
   const [reactionTime, setReactionTime] = useState<number | null>(null);
   
@@ -26,7 +25,7 @@ export const DrillController = ({ landmarksRef, isActive }: { landmarksRef: Reac
 
     const ankleWristYDiff = Math.abs(ankleY - groundWristY);
     if (phase === "IDLE" && ankleWristYDiff < 0.1) {
-      startDrill(hipX); 
+      startDrill();
     }
 
     if (phase === "GO" && baselineX.current !== null) {
@@ -34,16 +33,16 @@ export const DrillController = ({ landmarksRef, isActive }: { landmarksRef: Reac
       if (movement > 0.05) { 
         const endTime = performance.now();
         setReactionTime(Math.round(endTime - startTime.current));
-        baselineX.current = null;
-        
-        setTimeout(() => {setPhase("IDLE")}, 3000);
+        setPhase("IDLE")
       }
+    } else if (phase === "SET") {
+      baselineX.current = hipX
     }
 
     rafId.current = requestAnimationFrame(loop);
   };
 
-  const startDrill = (initialHipX: number) => {
+  const startDrill = () => {
     setPhase("SET");
     setReactionTime(null);
   
@@ -51,7 +50,6 @@ export const DrillController = ({ landmarksRef, isActive }: { landmarksRef: Reac
     const randomDelay = Math.random() * 3000;
 
     setTimeout(() => {
-      baselineX.current = initialHipX; 
       setPhase("GO");
       startTime.current = performance.now();
     }, hatDelay + randomDelay);
@@ -70,9 +68,10 @@ export const DrillController = ({ landmarksRef, isActive }: { landmarksRef: Reac
       <div className="text-center font-mono">
          {phase === "IDLE" && <p className="...">Set up in stance to start</p>}
          {phase === "SET" && <p className="...">DOWN!</p>}
-         {phase === "GO" && <p className="...">HIT!</p>}
+         {phase === "GO" && <p className="...">HAT!</p>}
          {reactionTime && <p className="text-blue-400 text-6xl">{reactionTime}ms</p>}
       </div>
+      {phase === "IDLE" && <button className="text-lime-200" onClick={() => {startDrill(), setTimeout(()=>{setReactionTime(100), setPhase("IDLE")}, 5000)}}>Mock Start Drill</button>}
     </div>
   );
 };
