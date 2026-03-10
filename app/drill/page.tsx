@@ -20,6 +20,8 @@ export default function DrillPage() {
   const requestRef = useRef<number | null>(null);
   const lastFrameTimeRef = useRef<number>(0);
   const landmarksRef = useRef<NormalizedLandmark[][] | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
 
   const [landmarker, setLandmarker] = useState<PoseLandmarker | null>(null);
   const [isActive, setIsActive] = useState(false);
@@ -61,14 +63,30 @@ export default function DrillPage() {
     async function startProgram() {
       if (!landmarker) return;
 
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          width: { ideal: 640 },
-          height: { ideal: 480 },
-          frameRate: { ideal: 30, max: 40 },
-          facingMode: "user"
-        }
-      });
+      // stream = await navigator.mediaDevices.getUserMedia({
+      //   video: {
+      //     width: { ideal: 640 },
+      //     height: { ideal: 480 },
+      //     frameRate: { ideal: 30, max: 40 },
+      //     facingMode: "user"
+      //   }
+      // });
+
+      // W miejscu gdzie normalnie robisz navigator.mediaDevices.getUserMedia
+      const mockCamera = () => {
+        const video = document.createElement('video');
+        video.src = "/video.mp4"; // Wrzuć plik do folderu public
+        video.loop = true;
+        video.muted = true; // Musi być wyciszony, żeby przeglądarka pozwoliła na play()
+        video.play();
+
+        const stream = (video as any).captureStream ? (video as any).captureStream(30) : (video as any).mozCaptureStream(60);
+
+        return stream as MediaStream;
+      };
+
+      const stream = process.env.NODE_ENV === "development" ? mockCamera() : await navigator.mediaDevices.getUserMedia({ video: true });
+
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -143,8 +161,50 @@ export default function DrillPage() {
   };
 
 
+
+
+  // const handleStartRecording = (stream: MediaStream | null, durationMs: number = 3000) => {
   const handleStartRecording = () => {
-    console.log("Odpalamy nagrywanie");
+    const stream = videoRef.current?.srcObject as MediaStream | null;
+    const durationMs = 3000;
+    if (!stream) {
+      console.error("Brak streamu do nagrania!");
+      return;
+    }
+
+    const recorder = new MediaRecorder(stream, {
+      mimeType: 'video/webm;codecs=vp9'
+    });
+
+    mediaRecorderRef.current = recorder;
+    chunksRef.current = []; // Resetujemy stare dane
+
+    recorder.ondataavailable = (e) => {
+      if (e.data.size > 0) chunksRef.current.push(e.data);
+    };
+
+    recorder.onstop = () => {
+      const blob = new Blob(chunksRef.current, { type: 'video/webm' });
+      const url = URL.createObjectURL(blob);
+
+      if (process.env.NODE_ENV === "development") {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `drill_${Date.now()}.webm`;
+        a.click();
+        console.log("Nagranie gotowe i pobrane!");
+      }
+    };
+
+    recorder.start();
+    console.log("Nagrywanie rozpoczęte...");
+
+    setTimeout(() => {
+      if (recorder.state !== "inactive") {
+        recorder.stop();
+        console.log("Nagrywanie zakończone automatycznie.");
+      }
+    }, durationMs);
   };
 
   const startRecordingRef = useRef(handleStartRecording);
@@ -191,8 +251,8 @@ export default function DrillPage() {
         onClick={() => setIsActive(!isActive)}
         disabled={!landmarker}
         className={`mt-10 px-12 py-4 font-mono text-sm border transition-all duration-300 ${isActive
-            ? "border-red-900 text-red-500 hover:bg-red-950"
-            : "border-green-900 text-green-500 hover:bg-green-950"
+          ? "border-red-900 text-red-500 hover:bg-red-950"
+          : "border-green-900 text-green-500 hover:bg-green-950"
           } disabled:opacity-20`}
       >
         {isActive ? "[ STOP_SESSION ]" : "[ START_SESSION ]"}
