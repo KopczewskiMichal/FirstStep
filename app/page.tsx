@@ -5,7 +5,7 @@ import { PoseLandmarker, FilesetResolver, DrawingUtils, NormalizedLandmark } fro
 import { DrillController } from "./DrillController";
 
 
-const drawMirroredFrame = (video:HTMLVideoElement, canvas:HTMLCanvasElement, ctx:CanvasRenderingContext2D) => {
+const drawMirroredFrame = (video: HTMLVideoElement, canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
   ctx.save();
   ctx.translate(canvas.width, 0);
   ctx.scale(-1, 1);
@@ -17,10 +17,10 @@ const drawMirroredFrame = (video:HTMLVideoElement, canvas:HTMLCanvasElement, ctx
 export default function PosePage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const requestRef = useRef<number | null>(null); 
+  const requestRef = useRef<number | null>(null);
   const lastFrameTimeRef = useRef<number>(0);
   const landmarksRef = useRef<NormalizedLandmark[][] | null>(null);
-  
+
   const [landmarker, setLandmarker] = useState<PoseLandmarker | null>(null);
   const [isActive, setIsActive] = useState(false);
 
@@ -61,13 +61,14 @@ export default function PosePage() {
     async function startProgram() {
       if (!landmarker) return;
 
-      stream = await navigator.mediaDevices.getUserMedia({ 
-        video:{
-        width: { ideal: 640 }, 
-        height: { ideal: 480 },
-        frameRate:{ideal: 30, max:40},
-        facingMode: "user" 
-      }});
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+          frameRate: { ideal: 30, max: 40 },
+          facingMode: "user"
+        }
+      });
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -80,15 +81,15 @@ export default function PosePage() {
 
     function stopProgram() {
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
-      
+
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
       }
       if (videoRef.current) {
         videoRef.current.srcObject = null;
       }
-      
-      const ctx = canvasRef.current?.getContext("2d", {alpha: false});
+
+      const ctx = canvasRef.current?.getContext("2d", { alpha: false });
       ctx?.clearRect(0, 0, canvasRef.current?.width || 0, canvasRef.current?.height || 0);
     }
 
@@ -98,48 +99,61 @@ export default function PosePage() {
       stopProgram();
     }
 
-    return () => stopProgram(); 
+    return () => stopProgram();
   }, [isActive, landmarker]);
 
-const predictLoop = () => {
-  const now = performance.now();
-  
-  if (lastFrameTimeRef.current !== 0) {
-    const delta = now - lastFrameTimeRef.current;
-    // if (Math.random() > 0.9) setFps(Math.round(1000 / delta));
-  }
-  lastFrameTimeRef.current = now;
+  const predictLoop = () => {
+    const now = performance.now();
 
-  const video = videoRef.current;
-  const offCanvas = offscreenCanvasRef.current;
-  const visibleCanvas = canvasRef.current;
+    if (lastFrameTimeRef.current !== 0) {
+      const delta = now - lastFrameTimeRef.current;
+      // if (Math.random() > 0.9) setFps(Math.round(1000 / delta));
+    }
+    lastFrameTimeRef.current = now;
 
-  if (landmarker && video && video.readyState >= 2 && offCanvas && visibleCanvas) {
-    const offCtx = offCanvas.getContext("2d");
-    const visibleCtx = visibleCanvas.getContext("2d", { alpha: false });
+    const video = videoRef.current;
+    const offCanvas = offscreenCanvasRef.current;
+    const visibleCanvas = canvasRef.current;
 
-    if (offCtx && visibleCtx) {
-      const mirroredFrame = drawMirroredFrame(video, offCanvas, offCtx);
+    if (landmarker && video && video.readyState >= 2 && offCanvas && visibleCanvas) {
+      const offCtx = offCanvas.getContext("2d");
+      const visibleCtx = visibleCanvas.getContext("2d", { alpha: false });
 
-      const results = landmarker.detectForVideo(mirroredFrame, now);
-      
-      visibleCtx.drawImage(mirroredFrame, 0, 0, visibleCanvas.width, visibleCanvas.height);
+      if (offCtx && visibleCtx) {
+        const mirroredFrame = drawMirroredFrame(video, offCanvas, offCtx);
 
-      if (results.landmarks && results.landmarks.length > 0) {
-        landmarksRef.current = results.landmarks
-        const drawingUtils = new DrawingUtils(visibleCtx);
-        for (const landmark of results.landmarks) {
-          drawingUtils.drawConnectors(landmark, PoseLandmarker.POSE_CONNECTIONS);
-          drawingUtils.drawLandmarks(landmark, { radius: 2 });
+        const results = landmarker.detectForVideo(mirroredFrame, now);
+
+        visibleCtx.drawImage(mirroredFrame, 0, 0, visibleCanvas.width, visibleCanvas.height);
+
+        if (results.landmarks && results.landmarks.length > 0) {
+          landmarksRef.current = results.landmarks
+          const drawingUtils = new DrawingUtils(visibleCtx);
+          for (const landmark of results.landmarks) {
+            drawingUtils.drawConnectors(landmark, PoseLandmarker.POSE_CONNECTIONS);
+            drawingUtils.drawLandmarks(landmark, { radius: 2 });
+          }
         }
       }
     }
-  }
 
-  if (isActive) {
-    requestRef.current = requestAnimationFrame(predictLoop);
-  }
-};
+    if (isActive) {
+      requestRef.current = requestAnimationFrame(predictLoop);
+    }
+  };
+
+
+  const handleStartRecording = () => {
+    console.log("Odpalamy nagrywanie");
+  };
+
+  const startRecordingRef = useRef(handleStartRecording);
+
+  // Zawsze aktualizujem refa, żeby widział najświeższy scope rodzica
+  useEffect(() => {
+    startRecordingRef.current = handleStartRecording;
+    console.log("Bezsensowne odświeżenie rodzica")
+  });
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white p-4">
@@ -149,17 +163,13 @@ const predictLoop = () => {
         </span>
       </h1>
 
-      {/* {isActive && (
-        <p>{fps}</p>
-      )} */}
-
       <div className="relative w-[640px] h-[480px] border border-zinc-800 bg-zinc-950 rounded-sm overflow-hidden">
         {!isActive && (
           <div className="absolute inset-0 flex items-center justify-center z-10 bg-black">
             <p className="text-zinc-700 font-mono text-sm tracking-tighter">CAMERA_OFF // NO_SIGNAL</p>
           </div>
         )}
-        
+
         <video
           ref={videoRef}
           autoPlay
@@ -175,16 +185,15 @@ const predictLoop = () => {
         />
       </div>
 
-      {isActive && (<DrillController landmarksRef={landmarksRef} isActive={isActive} />)}
+      {isActive && (<DrillController landmarksRef={landmarksRef} startRecordingCommandRef={startRecordingRef} />)}
 
       <button
         onClick={() => setIsActive(!isActive)}
         disabled={!landmarker}
-        className={`mt-10 px-12 py-4 font-mono text-sm border transition-all duration-300 ${
-          isActive 
-            ? "border-red-900 text-red-500 hover:bg-red-950" 
+        className={`mt-10 px-12 py-4 font-mono text-sm border transition-all duration-300 ${isActive
+            ? "border-red-900 text-red-500 hover:bg-red-950"
             : "border-green-900 text-green-500 hover:bg-green-950"
-        } disabled:opacity-20`}
+          } disabled:opacity-20`}
       >
         {isActive ? "[ STOP_SESSION ]" : "[ START_SESSION ]"}
       </button>
@@ -192,4 +201,4 @@ const predictLoop = () => {
       {!landmarker && <p className="mt-4 animate-pulse text-xs text-zinc-600">Booting AI models...</p>}
     </div>
   );
-  }
+}
