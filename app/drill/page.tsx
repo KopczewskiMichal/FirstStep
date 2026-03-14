@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { PoseLandmarker, FilesetResolver, DrawingUtils, NormalizedLandmark } from "@mediapipe/tasks-vision";
-import { DrillController } from "./DlineDrillController";
+import { DrillController } from "./DlineDrillComponent";
+import { getRecordingDuration, initSettings } from "./Settings";
 
 
 const drawMirroredFrame = (video: HTMLVideoElement, canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
@@ -22,11 +23,12 @@ export default function DrillPage() {
   const landmarksRef = useRef<NormalizedLandmark[][] | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const offscreenCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const [landmarker, setLandmarker] = useState<PoseLandmarker | null>(null);
   const [isActive, setIsActive] = useState(false);
 
-  const offscreenCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  initSettings();
 
   useEffect(() => {
     if (typeof document !== "undefined") {
@@ -166,7 +168,6 @@ export default function DrillPage() {
   // const handleStartRecording = (stream: MediaStream | null, durationMs: number = 3000) => {
   const handleStartRecording = () => {
     const stream = videoRef.current?.srcObject as MediaStream | null;
-    const durationMs = 3000;
     if (!stream) {
       console.error("Brak streamu do nagrania!");
       return;
@@ -204,7 +205,7 @@ export default function DrillPage() {
         recorder.stop();
         console.log("Nagrywanie zakończone automatycznie.");
       }
-    }, durationMs);
+    }, getRecordingDuration());
   };
 
   const startRecordingRef = useRef(handleStartRecording);
