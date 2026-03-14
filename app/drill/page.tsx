@@ -24,22 +24,21 @@ export default function DrillPage() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const offscreenCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const playbackVideoRef = useRef<HTMLVideoElement | null>(null);
 
   const [landmarker, setLandmarker] = useState<PoseLandmarker | null>(null);
   const [isActive, setIsActive] = useState(false);
 
-  initSettings();
 
+  
   useEffect(() => {
+    initSettings();
     if (typeof document !== "undefined") {
       const canvas = document.createElement("canvas");
       canvas.width = 640;
       canvas.height = 480;
       offscreenCanvasRef.current = canvas;
     }
-  }, []);
-
-  useEffect(() => {
     async function init() {
       const vision = await FilesetResolver.forVisionTasks(
         "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm"
@@ -65,29 +64,29 @@ export default function DrillPage() {
     async function startProgram() {
       if (!landmarker) return;
 
-      // stream = await navigator.mediaDevices.getUserMedia({
-      //   video: {
-      //     width: { ideal: 640 },
-      //     height: { ideal: 480 },
-      //     frameRate: { ideal: 30, max: 40 },
-      //     facingMode: "user"
-      //   }
-      // });
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+          frameRate: { ideal: 30, max: 40 },
+          facingMode: "user"
+        }
+      });
 
       // W miejscu gdzie normalnie robisz navigator.mediaDevices.getUserMedia
-      const mockCamera = () => {
-        const video = document.createElement('video');
-        video.src = "/video.mp4"; // Wrzuć plik do folderu public
-        video.loop = true;
-        video.muted = true; // Musi być wyciszony, żeby przeglądarka pozwoliła na play()
-        video.play();
+      // const mockCamera = () => {
+      //   const video = document.createElement('video');
+      //   video.src = "/video.mp4"; // Wrzuć plik do folderu public
+      //   video.loop = true;
+      //   video.muted = true; // Musi być wyciszony, żeby przeglądarka pozwoliła na play()
+      //   video.play();
 
-        const stream = (video as any).captureStream ? (video as any).captureStream(30) : (video as any).mozCaptureStream(60);
+      //   const stream = (video as any).captureStream ? (video as any).captureStream(30) : (video as any).mozCaptureStream(60);
 
-        return stream as MediaStream;
-      };
+      //   return stream as MediaStream;
+      // };
+      // const stream = process.env.NODE_ENV === "development" ? mockCamera() : await navigator.mediaDevices.getUserMedia({ video: true });
 
-      const stream = process.env.NODE_ENV === "development" ? mockCamera() : await navigator.mediaDevices.getUserMedia({ video: true });
 
 
       if (videoRef.current) {
@@ -165,13 +164,13 @@ export default function DrillPage() {
 
 
 
-  // const handleStartRecording = (stream: MediaStream | null, durationMs: number = 3000) => {
   const handleStartRecording = () => {
+    const durationMs = getRecordingDuration();
     const stream = videoRef.current?.srcObject as MediaStream | null;
     if (!stream) {
       console.error("Brak streamu do nagrania!");
       return;
-    }
+    } else if (durationMs === 0) return; // Symbol wyłączonego nagrywania
 
     const recorder = new MediaRecorder(stream, {
       mimeType: 'video/webm;codecs=vp9'
@@ -185,16 +184,29 @@ export default function DrillPage() {
     };
 
     recorder.onstop = () => {
-      const blob = new Blob(chunksRef.current, { type: 'video/webm' });
-      const url = URL.createObjectURL(blob);
+      const video = playbackVideoRef.current;
 
-      if (process.env.NODE_ENV === "development") {
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `drill_${Date.now()}.webm`;
-        a.click();
-        console.log("Nagranie gotowe i pobrane!");
+      if (video) {
+        const oldUrl = video.src;
+        
+        video.pause();
+        video.src = ""; 
+        video.load();
+
+        if (oldUrl && oldUrl.startsWith('blob:')) {
+          URL.revokeObjectURL(oldUrl);
+        }
+
+        const blob = new Blob(chunksRef.current, { type: 'video/webm' });
+        const newUrl = URL.createObjectURL(blob);
+
+        video.src = newUrl;
+        video.playbackRate = 0.5;
+        
+        video.play().catch(() => console.log("Wyświetla się playback"));
       }
+
+      chunksRef.current = [];
     };
 
     recorder.start();
@@ -213,7 +225,7 @@ export default function DrillPage() {
   // Zawsze aktualizujem refa, żeby widział najświeższy scope rodzica
   useEffect(() => {
     startRecordingRef.current = handleStartRecording;
-    console.log("Bezsensowne odświeżenie rodzica")
+    process.env.NODE_ENV === "development" && console.log("Bezsensowne odświeżenie rodzica")
   });
 
   return (
@@ -260,6 +272,17 @@ export default function DrillPage() {
       </button>
 
       {!landmarker && <p className="mt-4 animate-pulse text-xs text-zinc-600">Booting AI models...</p>}
+
+    {playbackVideoRef.current && 
+      <video
+        ref={playbackVideoRef.current}
+        autoPlay
+        playsInline
+        muted
+        loop
+        className="w-full h-full object-cover"
+      />}
+
     </div>
   );
 }

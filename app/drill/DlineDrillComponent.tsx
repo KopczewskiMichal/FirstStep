@@ -1,6 +1,7 @@
 "use client";
 import { NormalizedLandmark } from "@mediapipe/tasks-vision";
 import { useState, useEffect, useRef } from "react";
+import { getRecordingDuration } from "./Settings";
 
 interface Props {
   landmarksRef: React.RefObject<NormalizedLandmark[][] | null>;
@@ -60,6 +61,7 @@ export const DrillController = ({
     setTimeout(() => {
       setPhase("GO");
       startTime.current = performance.now();
+      startRecordingCommandRef.current();
     }, hatDelay + randomDelay);
   };
 
@@ -78,7 +80,7 @@ export const DrillController = ({
         {phase === "GO" && <p className="...">HAT!</p>}
         {reactionTime && <p className="text-blue-400 text-6xl">{reactionTime}ms</p>}
       </div>
-      {(phase === "IDLE" && process.env.NODE_ENV === 'development') && <button className="text-lime-200" onClick={() => { startDrill(), startRecordingCommandRef.current() , setTimeout(() => { setReactionTime(100),setPhase("IDLE") }, 5000) }}>Mock Start Drill</button>}
+      {(phase === "IDLE" && process.env.NODE_ENV === 'development') && <button className="text-lime-200" onClick={() => { startDrill(); setTimeout(() => { setReactionTime(99);setPhase("IDLE") }, 5000);}}>Mock Start Drill</button>}
     </div>
   );
 };
