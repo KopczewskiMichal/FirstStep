@@ -218,37 +218,53 @@ const handleStartRecording = () => {
   });
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white p-4">
-      {/* <h1 className="text-xl font-mono mb-6 tracking-widest text-zinc-500 uppercase">
-        System Status: <span className={isActive ? "text-green-500" : "text-red-500"}>
-          {isActive ? "Live" : "Standby"}
-        </span>
-      </h1> */}
+<div className="flex flex-col items-center justify-between h-screen overflow-hidden bg-black text-white p-4">
 
-      <DisplayVideoComponent
-        videoRef={videoRef} 
-        canvasRef={canvasRef} 
-        playbackVideoRef={playbackVideoRef}
-        playbackVideoUrl={playbackVideoUrl}
-        isActive={isActive} 
-      />
+  {/* 1. KONTENER NA WIDEO (Zostaje bez zmian - elastyczny) */}
+  <div className="flex-1 w-full max-w-7xl flex flex-col items-center justify-center min-h-0">
+    <DisplayVideoComponent
+      videoRef={videoRef} 
+      canvasRef={canvasRef} 
+      playbackVideoRef={playbackVideoRef}
+      playbackVideoUrl={playbackVideoUrl}
+      isActive={isActive} 
+    />
+  </div>
 
-
-      {isActive && (<DrillController landmarksRef={landmarksRef} startRecordingCommandRef={startRecordingRef} />)}
-
+  <div className="shrink-0 h-32 flex flex-col items-center justify-center relative w-full mt-4">
+    
+    <div className="flex flex-row items-center justify-center gap-8 w-full">
+      
       <button
         onClick={() => setIsActive(!isActive)}
         disabled={!landmarker}
-        className={`mt-10 px-12 py-4 font-mono text-sm border transition-all duration-300 ${isActive
-          ? "border-red-900 text-red-500 hover:bg-red-950"
-          : "border-green-900 text-green-500 hover:bg-green-950"
-          } disabled:opacity-20`}
+        className={`px-12 py-4 font-mono text-sm border transition-all duration-300 ${
+          isActive
+            ? "border-red-900 text-red-500 hover:bg-red-950"
+            : "border-green-900 text-green-500 hover:bg-green-950"
+        } disabled:opacity-20`}
       >
         {isActive ? "[ STOP_SESSION ]" : "[ START_SESSION ]"}
       </button>
 
-      {!landmarker && <p className="mt-4 animate-pulse text-xs text-zinc-600">Booting AI models...</p>}
+      {isActive && (
+        <div className="flex items-center justify-center min-w-[200px] transform scale-125 origin-left transition-all">
+          <DrillController 
+            landmarksRef={landmarksRef} 
+            startRecordingCommandRef={startRecordingRef} 
+          />
+        </div>
+      )}
 
     </div>
+
+    {!landmarker && (
+      <p className="absolute -bottom-2 animate-pulse text-xs text-zinc-600">
+        Booting AI models...
+      </p>
+    )}
+  </div>
+
+</div>
   );
 }
