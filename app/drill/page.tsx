@@ -66,28 +66,28 @@ export default function DrillPage() {
     async function startProgram() {
       if (!landmarker) return;
 
-      // stream = await navigator.mediaDevices.getUserMedia({
-      //   video: {
-      //     width: { ideal: 640 },
-      //     height: { ideal: 480 },
-      //     frameRate: { ideal: 30, max: 40 },
-      //     facingMode: "user"
-      //   }
-      // });
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+          frameRate: { ideal: 30, max: 40 },
+          facingMode: "user"
+        }
+      });
 
       // W miejscu gdzie normalnie robisz navigator.mediaDevices.getUserMedia
-      const mockCamera = () => {
-        const video = document.createElement('video');
-        video.src = "/video.mp4"; 
-        video.loop = true;
-        video.muted = true; // Musi być wyciszony, żeby przeglądarka pozwoliła na play()
-        video.play();
+      // const mockCamera = () => {
+      //   const video = document.createElement('video');
+      //   video.src = "/video.mp4"; 
+      //   video.loop = true;
+      //   video.muted = true; // Musi być wyciszony, żeby przeglądarka pozwoliła na play()
+      //   video.play();
 
-        const stream = (video as any).captureStream ? (video as any).captureStream(30) : (video as any).mozCaptureStream(60);
+      //   const stream = (video as any).captureStream ? (video as any).captureStream(30) : (video as any).mozCaptureStream(60);
 
-        return stream as MediaStream;
-      };
-      const stream = process.env.NODE_ENV === "development" ? mockCamera() : await navigator.mediaDevices.getUserMedia({ video: true });
+      //   return stream as MediaStream;
+      // };
+      // const stream = process.env.NODE_ENV === "development" ? mockCamera() : await navigator.mediaDevices.getUserMedia({ video: true });
 
 
       if (videoRef.current) {

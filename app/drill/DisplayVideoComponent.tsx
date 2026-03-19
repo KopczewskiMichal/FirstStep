@@ -36,7 +36,16 @@ export default function DisplayVideoComponent({ videoRef, canvasRef, playbackVid
           playsInline
           muted
           loop
-          className="absolute inset-0 w-full h-full object-cover z-0"
+          className="absolute inset-0 w-full h-full object-cover z-0 -scale-x-100"
+
+          onLoadedMetadata={() => {
+            if (playbackVideoRef.current) {
+              // 0.5 = 50% prędkości (idealne do analizy pad level)
+              // 1.0 = normalna prędkość
+              // 2.0 = 2x szybciej
+              playbackVideoRef.current.playbackRate = 0.5; 
+            }
+          }}
         />
       )}
 
