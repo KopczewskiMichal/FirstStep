@@ -41,5 +41,5 @@ yarn-error.log*
 next-env.d.ts
 
 
-# own changes
-TODO.txt
+# added by author
+/public/video.mp4
