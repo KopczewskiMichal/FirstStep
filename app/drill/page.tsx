@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { PoseLandmarker, FilesetResolver, DrawingUtils, NormalizedLandmark } from "@mediapipe/tasks-vision";
 import { DrillController } from "./DlineDrillComponent";
 import { getRecordingDuration, initSettings } from "./Settings";
+import DisplayVideoComponent from "./DisplayVideoComponent";
 
 
 const drawMirroredFrame = (video: HTMLVideoElement, canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
@@ -29,6 +30,7 @@ export default function DrillPage() {
 
   const [landmarker, setLandmarker] = useState<PoseLandmarker | null>(null);
   const [isActive, setIsActive] = useState(false);
+  const [playbackVideoUrl, setPlaybackUrl] = useState<string | null>(null);
 
 
   useEffect(() => {
@@ -76,7 +78,7 @@ export default function DrillPage() {
       // W miejscu gdzie normalnie robisz navigator.mediaDevices.getUserMedia
       const mockCamera = () => {
         const video = document.createElement('video');
-        video.src = "/video.mp4"; // Wrzuć plik do folderu public
+        video.src = "/video.mp4"; 
         video.loop = true;
         video.muted = true; // Musi być wyciszony, żeby przeglądarka pozwoliła na play()
         video.play();
@@ -86,7 +88,6 @@ export default function DrillPage() {
         return stream as MediaStream;
       };
       const stream = process.env.NODE_ENV === "development" ? mockCamera() : await navigator.mediaDevices.getUserMedia({ video: true });
-
 
 
       if (videoRef.current) {
@@ -124,10 +125,6 @@ export default function DrillPage() {
   const predictLoop = () => {
     const now = performance.now();
 
-    if (lastFrameTimeRef.current !== 0) {
-      const delta = now - lastFrameTimeRef.current;
-      // if (Math.random() > 0.9) setFps(Math.round(1000 / delta));
-    }
     lastFrameTimeRef.current = now;
 
     const video = videoRef.current;
@@ -164,61 +161,53 @@ export default function DrillPage() {
 
 
 
-  const handleStartRecording = () => {
-    const durationMs = getRecordingDuration();
-    const stream = videoRef.current?.srcObject as MediaStream | null;
-    if (!stream) {
-      console.error("No stream available for recording.");
-      return;
-    } else if (durationMs === 0) return;
+const handleStartRecording = () => {
+  const durationMs = getRecordingDuration();
+  const stream = videoRef.current?.srcObject as MediaStream | null;
+  
+  if (!stream) {
+    console.error("No stream available for recording.");
+    return;
+  } else if (durationMs === 0) return;
 
-    const recorder = new MediaRecorder(stream, {
-      mimeType: 'video/webm;codecs=vp9'
+  const recorder = new MediaRecorder(stream, {
+    mimeType: 'video/webm;codecs=vp9'
+  });
+
+  mediaRecorderRef.current = recorder;
+  chunksRef.current = [];
+
+  recorder.ondataavailable = (e) => {
+    if (e.data.size > 0) chunksRef.current.push(e.data);
+  };
+
+  recorder.onstop = () => {
+    const blob = new Blob(chunksRef.current, { type: 'video/webm' });
+    const newUrl = URL.createObjectURL(blob);
+
+    // Trik: Sprzątamy RAM bezpośrednio w callbacku stanu, 
+    // więc nie potrzebujemy żadnego starego wideo ani refów.
+    setPlaybackUrl((prevUrl) => {
+      if (prevUrl && prevUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(prevUrl);
+      }
+      return newUrl; // Aktualizuje stan i triggeruje dziecko
     });
 
-    mediaRecorderRef.current = recorder;
-    chunksRef.current = []; // Resetujemy stare dane
-
-    recorder.ondataavailable = (e) => {
-      if (e.data.size > 0) chunksRef.current.push(e.data);
-    };
-
-    recorder.onstop = () => {
-      const video = playbackVideoRef.current;
-
-      if (video) {
-        const oldUrl = video.src;
-        
-        video.pause();
-        video.src = ""; 
-        video.load();
-
-        if (oldUrl && oldUrl.startsWith('blob:')) {
-          URL.revokeObjectURL(oldUrl);
-        }
-
-        const blob = new Blob(chunksRef.current, { type: 'video/webm' });
-        const newUrl = URL.createObjectURL(blob);
-
-        video.src = newUrl;
-        video.playbackRate = 0.5;
-        
-        video.play().catch(() => console.log("Wyświetla się playback"));
-      }
-
-      chunksRef.current = [];
-    };
-
-    recorder.start();
-    console.log("Recording started...");
-
-    setTimeout(() => {
-      if (recorder.state !== "inactive") {
-        recorder.stop();
-        console.log("Recording completed automatically.");
-      }
-    }, getRecordingDuration());
+    chunksRef.current = [];
+    console.log("Gotowe. Nowy URL poszedł do komponentu wideo.");
   };
+
+  recorder.start();
+  console.log("Recording started...");
+
+  setTimeout(() => {
+    if (recorder.state !== "inactive") {
+      recorder.stop();
+      console.log("Recording completed automatically.");
+    }
+  }, durationMs); // <-- Dałem tu Twoją zmienną zamiast wywoływać funkcję 2x
+};
 
   const startRecordingRef = useRef(handleStartRecording);
 
@@ -230,11 +219,19 @@ export default function DrillPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white p-4">
-      <h1 className="text-xl font-mono mb-6 tracking-widest text-zinc-500 uppercase">
+      {/* <h1 className="text-xl font-mono mb-6 tracking-widest text-zinc-500 uppercase">
         System Status: <span className={isActive ? "text-green-500" : "text-red-500"}>
           {isActive ? "Live" : "Standby"}
         </span>
-      </h1>
+      </h1> */}
+
+      <DisplayVideoComponent
+        videoRef={videoRef} 
+        canvasRef={canvasRef} 
+        playbackVideoRef={playbackVideoRef}
+        playbackVideoUrl={playbackVideoUrl}
+        isActive={isActive} 
+      />
 
 
       {isActive && (<DrillController landmarksRef={landmarksRef} startRecordingCommandRef={startRecordingRef} />)}

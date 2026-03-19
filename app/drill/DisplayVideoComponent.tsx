@@ -1,19 +1,24 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { PoseLandmarker, FilesetResolver, DrawingUtils, NormalizedLandmark } from "@mediapipe/tasks-vision";
+import { use, useEffect, useRef, useState } from "react";
+
 
 interface Props {
   videoRef: React.RefObject<HTMLVideoElement | null>;
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
   playbackVideoRef: React.RefObject<HTMLVideoElement | null>;
-  
+  playbackVideoUrl: string | null;
   isActive: boolean;
 }
 
 
-export default function DisplayVideoComponent() {
+export default function DisplayVideoComponent({ videoRef, canvasRef, playbackVideoRef, playbackVideoUrl: currentPlaybackUrl, isActive }:  Props) {
 
+  useEffect(() => {
+    console.log(currentPlaybackUrl)
+      console.log(playbackVideoRef.current === null ? "Nie mam powtórki video" : "Jak Kaczyński, wiem ale nie powiem, a może jednak?" );
+
+  }, [currentPlaybackUrl]);
 
   return (
     <div>
@@ -39,15 +44,16 @@ export default function DisplayVideoComponent() {
         />
       </div>
 
-      {playbackVideoRef.current && 
       <video
-        ref={playbackVideoRef.current}
+        ref={playbackVideoRef}
+        key={currentPlaybackUrl}
+        src={currentPlaybackUrl || undefined}
         autoPlay
         playsInline
         muted
         loop
         className="w-full h-full object-cover"
-      />}
+      />
     </div>
   )
 }
