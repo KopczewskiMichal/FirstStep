@@ -8,10 +8,10 @@ interface Props {
   startRecordingCommandRef: React.RefObject<() => void>;
 }
 
-export const DrillController = ({ 
-  landmarksRef, 
-  startRecordingCommandRef 
-}:Props) => {
+export const DrillController = ({
+  landmarksRef,
+  startRecordingCommandRef
+}: Props) => {
   const [phase, setPhase] = useState<"IDLE" | "SET" | "GO">("IDLE");
   const [reactionTime, setReactionTime] = useState<number | null>(null);
 
@@ -72,7 +72,7 @@ export const DrillController = ({
 
   return (
     <div className={`mt-8 p-6 rounded-xl border-4 transition-all ${phase === "GO" ? "border-green-500 bg-green-900/20" :
-        phase === "SET" ? "border-yellow-500 bg-yellow-900/20" : "border-zinc-800"
+      phase === "SET" ? "border-yellow-500 bg-yellow-900/20" : "border-zinc-800"
       }`}>
       <div className="text-center font-mono">
         {phase === "IDLE" && <p className="...">Set up in stance to start</p>}
@@ -80,7 +80,7 @@ export const DrillController = ({
         {phase === "GO" && <p className="...">HAT!</p>}
         {reactionTime && <p className="text-blue-400 text-6xl">{reactionTime}ms</p>}
       </div>
-      {(phase === "IDLE" && process.env.NODE_ENV === 'development') && <button className="text-lime-200" onClick={() => { startDrill(); setTimeout(() => { setReactionTime(99);setPhase("IDLE") }, 5000);}}>Mock Start Drill</button>}
+      {(phase === "IDLE" && process.env.NODE_ENV === 'development') && <button className="text-lime-200" onClick={() => { startDrill(); setTimeout(() => { setReactionTime(99); setPhase("IDLE") }, 5000); }}>Mock Start Drill</button>}
     </div>
   );
 };

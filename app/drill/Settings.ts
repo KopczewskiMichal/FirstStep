@@ -1,13 +1,17 @@
 interface Config {
   treshold: number;
-  recordingDuration: number; // 0 => brak nagrywania
+  recordingDuration: number; // 0 -> brak nagrywania
   mode: "DLINE" | "SPRINT";
+  pre_snap_time_limits: [number, number];
+  sprint_wait_time: number;
 }
 
 const DEFAULT_CONFIG: Config = {
   treshold: 0.05,
-      recordingDuration: 3000, // milisekundy
-      mode: "DLINE"
+  recordingDuration: 3000,
+  mode: "DLINE",
+  pre_snap_time_limits: [2000, 7000],
+  sprint_wait_time: 5000
 }
 
 export const initSettings = () => {
@@ -47,6 +51,21 @@ export const getRecordingDuration = () => {
 export const getMode = () => {
   const config = getConfig();
   return config.mode === "DLINE" || config.mode === "SPRINT" ? config.mode : DEFAULT_CONFIG.mode;
+}
+
+export const getPreSnapTimeLimits = () => {
+  const config = getConfig();
+  const [min, max] = config.pre_snap_time_limits;
+  if (0 < min && min < max && max <= 15_000) {
+    return [min, max] as [number, number];
+  } else {
+    return DEFAULT_CONFIG.pre_snap_time_limits;
+  }
+}
+
+export const getSprintWaitTime = () => {
+  const config = getConfig();
+  return config.sprint_wait_time <= 15_000 ? config.sprint_wait_time : DEFAULT_CONFIG.sprint_wait_time;
 }
 
 const updateConfig = (changes: Partial<Config>) => {

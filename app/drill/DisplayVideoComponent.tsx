@@ -12,21 +12,20 @@ interface Props {
 }
 
 
-export default function DisplayVideoComponent({ videoRef, canvasRef, playbackVideoRef, playbackVideoUrl: currentPlaybackUrl, isActive }:  Props) {
+export default function DisplayVideoComponent({ videoRef, canvasRef, playbackVideoRef, playbackVideoUrl: currentPlaybackUrl, isActive }: Props) {
 
   useEffect(() => {
     console.log(currentPlaybackUrl)
-      console.log(playbackVideoRef.current === null ? "Nie mam powtórki video" : "Jak Kaczyński, wiem ale nie powiem, a może jednak?" );
+    console.log(playbackVideoRef.current === null ? "Nie mam powtórki video" : "Jak Kaczyński, wiem ale nie powiem, a może jednak?");
 
   }, [currentPlaybackUrl]);
 
   const hasPlayback = !!currentPlaybackUrl;
 
   return (
-    // Główny kontener całej aplikacji (np. 16:9, na całą szerokość)
     <div className="relative w-full max-w-6xl mx-auto aspect-video bg-zinc-950 border border-zinc-800 rounded-lg overflow-hidden shadow-2xl">
-      
-      {/* 1. PLAYBACK (Główny ekran, renderowany TYLKO jeśli istnieje) */}
+
+
       {hasPlayback && (
         <video
           ref={playbackVideoRef}
@@ -43,19 +42,18 @@ export default function DisplayVideoComponent({ videoRef, canvasRef, playbackVid
               // 0.5 = 50% prędkości (idealne do analizy pad level)
               // 1.0 = normalna prędkość
               // 2.0 = 2x szybciej
-              playbackVideoRef.current.playbackRate = 0.5; 
+              playbackVideoRef.current.playbackRate = 0.5;
             }
           }}
         />
       )}
 
       {/* 2. KAMERA LIVE + CANVAS (Na pełnym ekranie LUB w prawym dolnym rogu) */}
-      <div 
-        className={`overflow-hidden transition-all duration-500 ease-in-out ${
-          hasPlayback 
+      <div
+        className={`overflow-hidden transition-all duration-500 ease-in-out ${hasPlayback
             ? "absolute bottom-6 right-6 w-72 aspect-video z-50 rounded-xl border-2 border-zinc-700 shadow-2xl" // Tryb PiP (Picture-in-Picture)
             : "absolute inset-0 w-full h-full z-10" // Tryb Pełnoekranowy
-        }`}
+          }`}
       >
         {/* Brak sygnału */}
         {!isActive && (
@@ -71,7 +69,7 @@ export default function DisplayVideoComponent({ videoRef, canvasRef, playbackVid
           muted
           className="w-full h-full object-cover"
         />
-        
+
         {/* Canvas musi mieć w CSS w-full i h-full, żeby skalował się razem z wideo do prawego dolnego rogu */}
         <canvas
           ref={canvasRef}
@@ -80,7 +78,7 @@ export default function DisplayVideoComponent({ videoRef, canvasRef, playbackVid
           className="absolute top-0 left-0 w-full h-full object-cover pointer-events-none z-10"
         />
       </div>
-      
+
     </div>
   );
 }

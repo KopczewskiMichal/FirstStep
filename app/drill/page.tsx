@@ -161,53 +161,53 @@ export default function DrillPage() {
 
 
 
-const handleStartRecording = () => {
-  const durationMs = getRecordingDuration();
-  const stream = videoRef.current?.srcObject as MediaStream | null;
-  
-  if (!stream) {
-    console.error("No stream available for recording.");
-    return;
-  } else if (durationMs === 0) return;
+  const handleStartRecording = () => {
+    const durationMs = getRecordingDuration();
+    const stream = videoRef.current?.srcObject as MediaStream | null;
 
-  const recorder = new MediaRecorder(stream, {
-    mimeType: 'video/webm;codecs=vp9'
-  });
+    if (!stream) {
+      console.error("No stream available for recording.");
+      return;
+    } else if (durationMs === 0) return;
 
-  mediaRecorderRef.current = recorder;
-  chunksRef.current = [];
-
-  recorder.ondataavailable = (e) => {
-    if (e.data.size > 0) chunksRef.current.push(e.data);
-  };
-
-  recorder.onstop = () => {
-    const blob = new Blob(chunksRef.current, { type: 'video/webm' });
-    const newUrl = URL.createObjectURL(blob);
-
-    // Trik: Sprzątamy RAM bezpośrednio w callbacku stanu, 
-    // więc nie potrzebujemy żadnego starego wideo ani refów.
-    setPlaybackUrl((prevUrl) => {
-      if (prevUrl && prevUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(prevUrl);
-      }
-      return newUrl; // Aktualizuje stan i triggeruje dziecko
+    const recorder = new MediaRecorder(stream, {
+      mimeType: 'video/webm;codecs=vp9'
     });
 
+    mediaRecorderRef.current = recorder;
     chunksRef.current = [];
-    console.log("Gotowe. Nowy URL poszedł do komponentu wideo.");
+
+    recorder.ondataavailable = (e) => {
+      if (e.data.size > 0) chunksRef.current.push(e.data);
+    };
+
+    recorder.onstop = () => {
+      const blob = new Blob(chunksRef.current, { type: 'video/webm' });
+      const newUrl = URL.createObjectURL(blob);
+
+      // Trik: Sprzątamy RAM bezpośrednio w callbacku stanu, 
+      // więc nie potrzebujemy żadnego starego wideo ani refów.
+      setPlaybackUrl((prevUrl) => {
+        if (prevUrl && prevUrl.startsWith('blob:')) {
+          URL.revokeObjectURL(prevUrl);
+        }
+        return newUrl; // Aktualizuje stan i triggeruje dziecko
+      });
+
+      chunksRef.current = [];
+      console.log("Gotowe. Nowy URL poszedł do komponentu wideo.");
+    };
+
+    recorder.start();
+    console.log("Recording started...");
+
+    setTimeout(() => {
+      if (recorder.state !== "inactive") {
+        recorder.stop();
+        console.log("Recording completed automatically.");
+      }
+    }, durationMs); // <-- Dałem tu Twoją zmienną zamiast wywoływać funkcję 2x
   };
-
-  recorder.start();
-  console.log("Recording started...");
-
-  setTimeout(() => {
-    if (recorder.state !== "inactive") {
-      recorder.stop();
-      console.log("Recording completed automatically.");
-    }
-  }, durationMs); // <-- Dałem tu Twoją zmienną zamiast wywoływać funkcję 2x
-};
 
   const startRecordingRef = useRef(handleStartRecording);
 
@@ -218,53 +218,52 @@ const handleStartRecording = () => {
   });
 
   return (
-<div className="flex flex-col items-center justify-between h-screen overflow-hidden bg-black text-white p-4">
+    <div className="flex flex-col items-center justify-between h-screen overflow-hidden bg-black text-white p-4">
 
-  {/* 1. KONTENER NA WIDEO (Zostaje bez zmian - elastyczny) */}
-  <div className="flex-1 w-full max-w-7xl flex flex-col items-center justify-center min-h-0">
-    <DisplayVideoComponent
-      videoRef={videoRef} 
-      canvasRef={canvasRef} 
-      playbackVideoRef={playbackVideoRef}
-      playbackVideoUrl={playbackVideoUrl}
-      isActive={isActive} 
-    />
-  </div>
+      {/* 1. KONTENER NA WIDEO (Zostaje bez zmian - elastyczny) */}
+      <div className="flex-1 w-full max-w-7xl flex flex-col items-center justify-center min-h-0">
+        <DisplayVideoComponent
+          videoRef={videoRef}
+          canvasRef={canvasRef}
+          playbackVideoRef={playbackVideoRef}
+          playbackVideoUrl={playbackVideoUrl}
+          isActive={isActive}
+        />
+      </div>
 
-  <div className="shrink-0 h-32 flex flex-col items-center justify-center relative w-full mt-4">
-    
-    <div className="flex flex-row items-center justify-center gap-8 w-full">
-      
-      <button
-        onClick={() => setIsActive(!isActive)}
-        disabled={!landmarker}
-        className={`px-12 py-4 font-mono text-sm border transition-all duration-300 ${
-          isActive
-            ? "border-red-900 text-red-500 hover:bg-red-950"
-            : "border-green-900 text-green-500 hover:bg-green-950"
-        } disabled:opacity-20`}
-      >
-        {isActive ? "[ STOP_SESSION ]" : "[ START_SESSION ]"}
-      </button>
+      <div className="shrink-0 h-32 flex flex-col items-center justify-center relative w-full mt-4">
 
-      {isActive && (
-        <div className="flex items-center justify-center min-w-[200px] transform scale-125 origin-left transition-all">
-          <DrillController 
-            landmarksRef={landmarksRef} 
-            startRecordingCommandRef={startRecordingRef} 
-          />
+        <div className="flex flex-row items-center justify-center gap-8 w-full">
+
+          <button
+            onClick={() => setIsActive(!isActive)}
+            disabled={!landmarker}
+            className={`px-12 py-4 font-mono text-sm border transition-all duration-300 ${isActive
+                ? "border-red-900 text-red-500 hover:bg-red-950"
+                : "border-green-900 text-green-500 hover:bg-green-950"
+              } disabled:opacity-20`}
+          >
+            {isActive ? "[ STOP_SESSION ]" : "[ START_SESSION ]"}
+          </button>
+
+          {isActive && (
+            <div className="flex items-center justify-center min-w-[200px] transform scale-125 origin-left transition-all">
+              <DrillController
+                landmarksRef={landmarksRef}
+                startRecordingCommandRef={startRecordingRef}
+              />
+            </div>
+          )}
+
         </div>
-      )}
+
+        {!landmarker && (
+          <p className="absolute -bottom-2 animate-pulse text-xs text-zinc-600">
+            Booting AI models...
+          </p>
+        )}
+      </div>
 
     </div>
-
-    {!landmarker && (
-      <p className="absolute -bottom-2 animate-pulse text-xs text-zinc-600">
-        Booting AI models...
-      </p>
-    )}
-  </div>
-
-</div>
   );
 }
