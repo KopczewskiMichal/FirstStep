@@ -6,7 +6,7 @@ export default function Home() {
       
       {/* Dekoracyjne tło w stylu "grid" */}
       <div className="absolute inset-0 z-0 opacity-20" 
-           style={{ backgroundImage: 'linear-gradient(#333 1px, transparent 1px), linear-gradient(90deg, #333 1px, transparent 1px)', size: '40px 40px', backgroundSize: '40px 40px' }}>
+           style={{ backgroundImage: 'linear-gradient(#333 1px, transparent 1px), linear-gradient(90deg, #333 1px, transparent 1px)', backgroundSize: '40px 40px' }}>
       </div>
 
       <div className="relative z-10 text-center max-w-4xl">
