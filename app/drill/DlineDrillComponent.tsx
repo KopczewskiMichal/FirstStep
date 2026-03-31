@@ -1,7 +1,7 @@
 "use client";
 import { NormalizedLandmark } from "@mediapipe/tasks-vision";
 import { useState, useEffect, useRef } from "react";
-import { getRecordingDuration } from "./Settings";
+import { getPreSnapTimeLimits, getRecordingDuration } from "./Settings";
 
 interface Props {
   landmarksRef: React.RefObject<NormalizedLandmark[][] | null>;
@@ -55,14 +55,14 @@ export const DrillController = ({
     setPhase("SET");
     setReactionTime(null);
 
-    const hatDelay = 2000;
-    const randomDelay = Math.random() * 3000;
+    const preSnapTimeLimits = getPreSnapTimeLimits();
+    const randomDelay = Math.random() * preSnapTimeLimits[1];
 
     setTimeout(() => {
       setPhase("GO");
       startTime.current = performance.now();
       startRecordingCommandRef.current();
-    }, hatDelay + randomDelay);
+    }, preSnapTimeLimits[0] + randomDelay);
   };
 
   useEffect(() => {
