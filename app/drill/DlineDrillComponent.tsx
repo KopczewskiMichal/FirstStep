@@ -1,7 +1,9 @@
 "use client";
 import { NormalizedLandmark } from "@mediapipe/tasks-vision";
 import { useState, useEffect, useRef } from "react";
-import { getPreSnapTimeLimits, getRecordingDuration } from "./Settings";
+import { getMode, getPreSnapTimeLimits, getSprintWaitTime } from "./Settings";
+import { preSnapFootballRoutine, process_football_landmarks } from "./footballDrillUtils";
+import { process_sprint_landmarks } from "./sprintDrillUtils";
 
 interface Props {
   landmarksRef: React.RefObject<NormalizedLandmark[][] | null>;
@@ -19,6 +21,7 @@ export const DrillController = ({
   const startTime = useRef<number>(0);
   const rafId = useRef<number>(0);
 
+
   const loop = () => {
     const landmarks = landmarksRef.current
     if (!landmarks || !landmarks[0]) {
@@ -26,11 +29,15 @@ export const DrillController = ({
       return;
     }
 
-    const player = landmarks[0];
-    const centerOnLeft = player[23].z > player[24].z;
-    const hipX = centerOnLeft ? player[23].x : player[24].x;
-    const groundWristY = centerOnLeft ? player[15].y : player[16].y;
-    const ankleY = player[28].y;
+    let hipX, groundWristY, ankleY;
+    switch (getMode()) {
+      case "DLINE":
+        ({ hipX, groundWristY, ankleY } = process_football_landmarks(landmarks));
+        break;
+      case "SPRINT":
+        ({ hipX, groundWristY, ankleY } = process_sprint_landmarks(landmarks));
+        break;
+    }
 
     const ankleWristYDiff = Math.abs(ankleY - groundWristY);
     if (phase === "IDLE" && ankleWristYDiff < 0.1) {
@@ -55,15 +62,15 @@ export const DrillController = ({
     setPhase("SET");
     setReactionTime(null);
 
-    const preSnapTimeLimits = getPreSnapTimeLimits();
-    const randomDelay = Math.random() * preSnapTimeLimits[1];
+    const waitTime = preSnapFootballRoutine();
 
     setTimeout(() => {
       setPhase("GO");
       startTime.current = performance.now();
       startRecordingCommandRef.current();
-    }, preSnapTimeLimits[0] + randomDelay);
+    }, waitTime);
   };
+
 
   useEffect(() => {
     rafId.current = requestAnimationFrame(loop);
