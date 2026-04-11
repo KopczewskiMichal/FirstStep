@@ -1,14 +1,23 @@
 "use client";
 import { NormalizedLandmark } from "@mediapipe/tasks-vision";
 import { useState, useEffect, useRef } from "react";
-import { getMode, getPreSnapTimeLimits, getSprintWaitTime } from "./Settings";
-import { preSnapFootballRoutine, process_football_landmarks } from "./footballDrillUtils";
-import { process_sprint_landmarks } from "./sprintDrillUtils";
+import { getMode} from "./Settings";
+import { footballRoutine, process_football_landmarks } from "./footballDrillUtils";
+import { process_sprint_landmarks, sprintRoutine } from "./sprintDrillUtils";
 
 interface Props {
   landmarksRef: React.RefObject<NormalizedLandmark[][] | null>;
   startRecordingCommandRef: React.RefObject<() => void>;
 }
+
+const DRILL_STRATEGIES = {
+  DLINE: (onGo: () => void) => {
+    footballRoutine(onGo);
+  },
+  SPRINT: (onGo: () => void) => {
+    sprintRoutine(onGo); 
+  }
+};
 
 export const DrillController = ({
   landmarksRef,
@@ -58,18 +67,18 @@ export const DrillController = ({
     rafId.current = requestAnimationFrame(loop);
   };
 
-  const startDrill = () => {
-    setPhase("SET");
-    setReactionTime(null);
+const startDrill = () => {
+  const mode = getMode();
+  
+  setPhase("SET");
+  setReactionTime(null);
 
-    const waitTime = preSnapFootballRoutine();
-
-    setTimeout(() => {
-      setPhase("GO");
-      startTime.current = performance.now();
-      startRecordingCommandRef.current();
-    }, waitTime);
-  };
+  DRILL_STRATEGIES[mode](() => {
+    setPhase("GO");
+    startTime.current = performance.now();
+    startRecordingCommandRef.current();
+  });
+};
 
 
   useEffect(() => {
@@ -87,7 +96,7 @@ export const DrillController = ({
         {phase === "GO" && <p className="...">HAT!</p>}
         {reactionTime && <p className="text-blue-400 text-6xl">{reactionTime}ms</p>}
       </div>
-      {(phase === "IDLE" && process.env.NODE_ENV === 'development') && <button className="text-lime-200" onClick={() => { startDrill(); setTimeout(() => { setReactionTime(99); setPhase("IDLE") }, 5000); }}>Mock Start Drill</button>}
+      {(phase === "IDLE" && process.env.NODE_ENV === 'development') && <button className="text-lime-200" onClick={() => { startDrill(); setTimeout(() => { setReactionTime(99); setPhase("IDLE") }, 6500); }}>Mock Start Drill</button>}
     </div>
   );
 };

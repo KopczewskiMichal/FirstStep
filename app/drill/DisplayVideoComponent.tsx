@@ -1,6 +1,7 @@
 "use client";
 
 import { use, useEffect, useRef, useState } from "react";
+import {getPlaybackSpeed} from "./Settings";
 
 
 interface Props {
@@ -13,13 +14,6 @@ interface Props {
 
 
 export default function DisplayVideoComponent({ videoRef, canvasRef, playbackVideoRef, playbackVideoUrl: currentPlaybackUrl, isActive }: Props) {
-
-  useEffect(() => {
-    console.log(currentPlaybackUrl)
-    console.log(playbackVideoRef.current === null ? "Nie mam powtórki video" : "Jak Kaczyński, wiem ale nie powiem, a może jednak?");
-
-  }, [currentPlaybackUrl]);
-
   const hasPlayback = !!currentPlaybackUrl;
 
   return (
@@ -39,10 +33,7 @@ export default function DisplayVideoComponent({ videoRef, canvasRef, playbackVid
 
           onLoadedMetadata={() => {
             if (playbackVideoRef.current) {
-              // 0.5 = 50% prędkości (idealne do analizy pad level)
-              // 1.0 = normalna prędkość
-              // 2.0 = 2x szybciej
-              playbackVideoRef.current.playbackRate = 0.5;
+              playbackVideoRef.current.playbackRate = getPlaybackSpeed();
             }
           }}
         />

@@ -10,7 +10,7 @@ export function process_football_landmarks(landmarks: NormalizedLandmark[][]) {
   return { hipX, groundWristY, ankleY };
 }
 
-export function preSnapFootballRoutine():number{
+export const footballRoutine = (onGo: () => void): void => {
   const preSnapTime = getPreSnapTimeLimits();
-  return preSnapTime[0] + (Math.random() * preSnapTime[1] - preSnapTime[0]);
+  setTimeout(onGo, preSnapTime[0] + (Math.random() * preSnapTime[1] - preSnapTime[0]));
 }

@@ -191,11 +191,10 @@ export default function DrillPage() {
         if (prevUrl && prevUrl.startsWith('blob:')) {
           URL.revokeObjectURL(prevUrl);
         }
-        return newUrl; // Aktualizuje stan i triggeruje dziecko
+        return newUrl; 
       });
 
       chunksRef.current = [];
-      console.log("Gotowe. Nowy URL poszedł do komponentu wideo.");
     };
 
     recorder.start();
@@ -211,10 +210,8 @@ export default function DrillPage() {
 
   const startRecordingRef = useRef(handleStartRecording);
 
-  // Zawsze aktualizujem refa, żeby widział najświeższy scope rodzica
   useEffect(() => {
     startRecordingRef.current = handleStartRecording;
-    process.env.NODE_ENV === "development" && console.log("Bezsensowne odświeżenie rodzica")
   });
 
   return (
