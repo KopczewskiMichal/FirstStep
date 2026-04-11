@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { PoseLandmarker, FilesetResolver, DrawingUtils, NormalizedLandmark } from "@mediapipe/tasks-vision";
-import { DrillController } from "./DlineDrillComponent";
+import { DrillController } from "./DrillController";
 import { getRecordingDuration, initSettings } from "./Settings";
 import DisplayVideoComponent from "./DisplayVideoComponent";
 

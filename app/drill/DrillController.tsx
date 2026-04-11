@@ -67,18 +67,18 @@ export const DrillController = ({
     rafId.current = requestAnimationFrame(loop);
   };
 
-const startDrill = () => {
-  const mode = getMode();
-  
-  setPhase("SET");
-  setReactionTime(null);
+  const startDrill = () => {
+    const mode = getMode();
+    
+    setPhase("SET");
+    setReactionTime(null);
 
-  DRILL_STRATEGIES[mode](() => {
-    setPhase("GO");
-    startTime.current = performance.now();
-    startRecordingCommandRef.current();
-  });
-};
+    DRILL_STRATEGIES[mode](() => {
+      setPhase("GO");
+      startTime.current = performance.now();
+      startRecordingCommandRef.current();
+    });
+  };
 
 
   useEffect(() => {
