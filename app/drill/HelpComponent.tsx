@@ -1,3 +1,6 @@
+import { get } from "http";
+import { getMode } from "./Settings";
+
 interface Props {
   onClose: () => void;
 }
@@ -13,11 +16,13 @@ export default function HelpComponent({ onClose }: Props) {
           <span className="text-white font-semibold">1. Frame:</span> Position camera to see your <span className="text-blue-200">full body</span> (head to ankles).
         </li>
         <li>
-          <span className="text-white font-semibold">2. Audio:</span> Turn <span className="text-blue-200">sound ON</span> for start signals.
+          <span className="text-white font-semibold">2. Start:</span> Drill begins <span className="text-blue-200">automatically</span> once you're in position.
         </li>
-        <li>
-          <span className="text-white font-semibold">3. Start:</span> Drill begins <span className="text-blue-200">automatically</span> once you're in position.
+        {getMode() === "SPRINT" && (
+          <li>
+          <span className="text-white font-semibold">3. Audio:</span> Turn <span className="text-blue-200">sound ON</span> for start signals.
         </li>
+        )}
       </ul>
       <button
         onClick={onClose}
