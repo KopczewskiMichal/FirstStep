@@ -232,6 +232,7 @@ export default function DrillPage() {
       {/* SETTINGS */}
       <div className="absolute top-2 left-2 z-40">
         <button
+          aria-label="Settings"
           onClick={toggleSettings}
           className="w-8 h-8 flex items-center justify-center rounded-full bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-700 transition-colors"
         >
@@ -243,6 +244,7 @@ export default function DrillPage() {
       {/* HELP */}
       <div className="absolute top-2 right-2 z-40">
         <button
+          aria-label="Help" 
           onClick={toggleHelp}
           className="w-8 h-8 flex items-center justify-center rounded-full bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-700 transition-colors"
         >

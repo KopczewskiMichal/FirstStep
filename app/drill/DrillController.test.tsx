@@ -5,7 +5,7 @@ import * as footballUtils from "./footballDrillUtils";
 import * as sprintUtils from "./sprintDrillUtils";
 
 // 1. Mockujemy moduły narzędziowe
-jest.mock("./Settings");
+jest.mock("./settings");
 jest.mock("./footballDrillUtils");
 jest.mock("./sprintDrillUtils");
 
