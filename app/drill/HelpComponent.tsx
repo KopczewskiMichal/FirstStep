@@ -1,5 +1,4 @@
-import { get } from "http";
-import { getMode } from "./Settings";
+import { getMode } from "./settings";
 
 interface Props {
   onClose: () => void;

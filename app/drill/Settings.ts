@@ -1,4 +1,4 @@
-interface Config {
+export interface Config {
   treshold: number;
   recordingDuration: number; // 0 -> brak nagrywania
   playbackSpeed: number;
@@ -21,7 +21,7 @@ export const initSettings = () => {
   }
 }
 
-const getConfig = (): Config => {
+export const getConfig = (): Config => {
   const saved = localStorage.getItem("drillSettings");
   if (!saved) {
     initSettings();
@@ -72,7 +72,7 @@ export const getPreSnapTimeLimits = () => {
   }
 }
 
-const updateConfig = (changes: Partial<Config>) => {
+export const updateConfig = (changes: Partial<Config>) => {
   const current = getConfig();
   const updated = { ...current, ...changes };
   localStorage.setItem("drillSettings", JSON.stringify(updated));

@@ -1,7 +1,7 @@
 "use client";
 import { NormalizedLandmark } from "@mediapipe/tasks-vision";
 import { useState, useEffect, useRef } from "react";
-import { getMode} from "./Settings";
+import { getMode} from "./settings";
 import { footballRoutine, process_football_landmarks } from "./footballDrillUtils";
 import { process_sprint_landmarks, sprintRoutine } from "./sprintDrillUtils";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { use, useEffect, useRef, useState } from "react";
-import {getPlaybackSpeed} from "./Settings";
+import {getPlaybackSpeed} from "./settings";
 
 
 interface Props {

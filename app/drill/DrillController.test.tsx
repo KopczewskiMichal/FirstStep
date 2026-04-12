@@ -1,6 +1,6 @@
 import { render, act } from "@testing-library/react";
 import { DrillController } from "./DrillController";
-import * as settings from "./Settings";
+import * as settings from "./settings";
 import * as footballUtils from "./footballDrillUtils";
 import * as sprintUtils from "./sprintDrillUtils";
 
