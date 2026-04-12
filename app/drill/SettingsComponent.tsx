@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { Config, getConfig, updateConfig } from "./settings"; // dopasuj ścieżki
-
+import { Config, getConfig, updateConfig } from "./settings";
 interface Props {
   onClose: () => void;
 }
