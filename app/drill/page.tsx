@@ -3,8 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import { PoseLandmarker, FilesetResolver, DrawingUtils, NormalizedLandmark } from "@mediapipe/tasks-vision";
 import { DrillController } from "./DrillController";
-import { getRecordingDuration, initSettings } from "./Settings";
+import { getMode, getRecordingDuration, initSettings } from "./settings";
 import DisplayVideoComponent from "./DisplayVideoComponent";
+import HelpComponent from "./HelpComponent";
+import SettingsComponent from "./SettingsComponent";
 
 
 const drawMirroredFrame = (video: HTMLVideoElement, canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
@@ -31,6 +33,8 @@ export default function DrillPage() {
   const [landmarker, setLandmarker] = useState<PoseLandmarker | null>(null);
   const [isActive, setIsActive] = useState(false);
   const [playbackVideoUrl, setPlaybackUrl] = useState<string | null>(null);
+  const [showHelpInfo, setShowHelpInfo] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
 
   useEffect(() => {
@@ -159,8 +163,6 @@ export default function DrillPage() {
   };
 
 
-
-
   const handleStartRecording = () => {
     const durationMs = getRecordingDuration();
     const stream = videoRef.current?.srcObject as MediaStream | null;
@@ -191,7 +193,7 @@ export default function DrillPage() {
         if (prevUrl && prevUrl.startsWith('blob:')) {
           URL.revokeObjectURL(prevUrl);
         }
-        return newUrl; 
+        return newUrl;
       });
 
       chunksRef.current = [];
@@ -214,8 +216,44 @@ export default function DrillPage() {
     startRecordingRef.current = handleStartRecording;
   });
 
+  const toggleHelp = () => {
+    setShowHelpInfo(!showHelpInfo);
+    if (!showHelpInfo) setShowSettings(false);
+  };
+
+  const toggleSettings = () => {
+    setShowSettings(!showSettings);
+    if (!showSettings) setShowHelpInfo(false);
+  };
+
   return (
     <div className="flex flex-col items-center justify-between h-screen overflow-hidden bg-black text-white p-4">
+
+      {/* SETTINGS */}
+      <div className="absolute top-2 left-2 z-40">
+        <button
+          aria-label="Settings"
+          onClick={toggleSettings}
+          className="w-8 h-8 flex items-center justify-center rounded-full bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-700 transition-colors"
+        >
+          ⚙️
+        </button>
+        {showSettings && <SettingsComponent onClose={() => setShowSettings(false)} />}
+      </div>
+
+      {/* HELP */}
+      <div className="absolute top-2 right-2 z-40">
+        <button
+          aria-label="Help" 
+          onClick={toggleHelp}
+          className="w-8 h-8 flex items-center justify-center rounded-full bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-700 transition-colors"
+        >
+          ?
+        </button>
+        {showHelpInfo && <HelpComponent onClose={() => setShowHelpInfo(false)} />}
+      </div>
+
+
 
       {/* 1. KONTENER NA WIDEO (Zostaje bez zmian - elastyczny) */}
       <div className="flex-1 w-full max-w-7xl flex flex-col items-center justify-center min-h-0">
@@ -236,8 +274,8 @@ export default function DrillPage() {
             onClick={() => setIsActive(!isActive)}
             disabled={!landmarker}
             className={`px-12 py-4 font-mono text-sm border transition-all duration-300 ${isActive
-                ? "border-red-900 text-red-500 hover:bg-red-950"
-                : "border-green-900 text-green-500 hover:bg-green-950"
+              ? "border-red-900 text-red-500 hover:bg-red-950"
+              : "border-green-900 text-green-500 hover:bg-green-950"
               } disabled:opacity-20`}
           >
             {isActive ? "[ STOP_SESSION ]" : "[ START_SESSION ]"}
@@ -260,7 +298,6 @@ export default function DrillPage() {
           </p>
         )}
       </div>
-
     </div>
   );
 }

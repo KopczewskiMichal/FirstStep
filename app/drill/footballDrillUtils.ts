@@ -1,5 +1,5 @@
 import { NormalizedLandmark } from "@mediapipe/tasks-vision";
-import { getPreSnapTimeLimits } from "./Settings";
+import { getPreSnapTimeLimits } from "./settings";
 
 export function process_football_landmarks(landmarks: NormalizedLandmark[][]) {
   const player = landmarks[0];
