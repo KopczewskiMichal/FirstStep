@@ -7,7 +7,6 @@ interface Props {
 
 export default function SettingsComponent({ onClose }: Props) {
   const [config, setConfig] = useState<Config>(getConfig());
-  const [_, setTick] = useState(0); // Stan do wymuszania re-rendera przy zmianie trybu
 
   const handleSliderChange = (key: keyof Config, value: number) => {
     setConfig(prev => ({ ...prev, [key]: value }));
@@ -64,16 +63,16 @@ export default function SettingsComponent({ onClose }: Props) {
         </div>
       </div>
 
-     <div className="flex-1 flex bg-zinc-900 p-1 rounded-full border border-zinc-800 mx-4 relative overflow-hidden">
+<div className="flex-1 flex bg-zinc-900 p-1 rounded-full border border-zinc-800 mx-4 relative overflow-hidden">
   <button
     onClick={() => {
+      // 1. Aktualizujemy stan lokalny (to wymusi re-render)
+      setConfig(prev => ({ ...prev, mode: "DLINE" }));
+      // 2. Zapisujemy do pamięci (żeby zostało po przeładowaniu)
       updateConfig({ mode: "DLINE" });
-      setTick(0); // <--- TO WYMUSZA RE-RENDER
     }}
     className={`flex-1 py-2 rounded-full text-[11px] font-black transition-all z-10 ${
-      config.mode === "DLINE" 
-        ? "bg-orange-600 text-white shadow-lg" 
-        : "text-zinc-500"
+      config.mode === "DLINE" ? "bg-orange-600 text-white shadow-lg" : "text-zinc-500"
     }`}
   >
     FOOTBALL
@@ -81,13 +80,13 @@ export default function SettingsComponent({ onClose }: Props) {
 
   <button
     onClick={() => {
+      // 1. Aktualizujemy stan lokalny (to wymusi re-render)
+      setConfig(prev => ({ ...prev, mode: "SPRINT" }));
+      // 2. Zapisujemy do pamięci
       updateConfig({ mode: "SPRINT" });
-      setTick(1); // <--- TO WYMUSZA RE-RENDER
     }}
     className={`flex-1 py-2 rounded-full text-[11px] font-black transition-all z-10 ${
-      config.mode === "SPRINT" 
-        ? "bg-orange-600 text-white shadow-lg" 
-        : "text-zinc-500"
+      config.mode === "SPRINT" ? "bg-orange-600 text-white shadow-lg" : "text-zinc-500"
     }`}
   >
     SPRINT
