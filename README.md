@@ -1,36 +1,29 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FirstStep
+### AI-powered esplosive start analysis for athletes.
+Try in browser: https://stance-app-ten.vercel.app/
 
-## Getting Started
+## Overview
+An innovative computer vision tool designed for american football (D-Line) and sprint athletes. The website utilises real-time pose estimation to analyze stance, measure reaction time and provide slow motion record.
 
-First, run the development server:
+By leveraging smartphone cameras instead of expensive sensors, it brings elite-level analytics out of the lab and onto the field."
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Key Features
+- Auto-Start Intelligence: The app intelligently detects when you've settled into your stance and automatically triggers the recording, letting you focus entirely on the rep.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Sport-Specific Cues: Train like you play.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+  - Sprint Mode: Starts on an audio command (simulating the starter's pistol).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+  - American Football Mode: Starts on a visual signal (simulating the ball snap).
 
-## Learn More
+- Instant Slow-Motion Replay: Review every rep immediately. The app automatically displays a slow-motion playback, allowing you to analyze your biomechanics and first-step explosiveness.
 
-To learn more about Next.js, take a look at the following resources:
+- Privacy First: All analysis happens locally on your device. No video or motion data is ever sent to a server. It’s fast, secure, and works offline.
+## Tech Stack
+- Frontend: React, Next.js, Tailwind CSS
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- AI/ML: MediaPipe Tasks Vision (Pose Landmarker)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Testing: Jest, React Testing Library
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Deployment: Vercel
