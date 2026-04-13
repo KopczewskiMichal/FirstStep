@@ -10,28 +10,29 @@ export default function Home() {
 
       <div className="relative z-10 text-center max-w-4xl">
         <h1 className="text-6xl md:text-8xl font-black italic tracking-tighter mb-4 uppercase">
-          Next Gen <span className="text-blue-500 text-glow">Performance</span>
+          First Step <span className="text-blue-500 text-glow">Analytics</span>
         </h1>
 
         <p className="text-xl md:text-2xl font-light text-zinc-400 mb-8 max-w-2xl mx-auto leading-relaxed">
-          Precyzyjna analiza ruchu AI dedykowana dla
-          <span className="text-white font-bold"> Defensive Linemen</span>.
-          Mierz swój czas reakcji i dynamikę startu z dokładnością co do ułamków sekundy.
+          Precision motion detection and analysis tool designed specifically for
+          <span className="text-white font-bold"> Defensive Linemen </span> and
+          <span className="text-white font-bold"> Sprinters </span>.
+          Measure your <span className="text-zinc-200">explosive first step</span>, identify movement patterns, and gain insights to elevate your performance on the field or track.
         </p>
 
         <div className="flex flex-col md:flex-row gap-6 justify-center items-center">
           <Link href="/drill"
             className="group relative px-10 py-4 bg-white text-black font-black uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all duration-300 transform hover:scale-105">
-            Zacznij Trening
+            Start Training
             <span className="absolute -bottom-2 -right-2 w-full h-full border-2 border-blue-500 -z-10 group-hover:bottom-0 group-hover:right-0 transition-all"></span>
           </Link>
 
-          <div className="flex flex-col items-start border-l-2 border-zinc-800 pl-6">
+          {/* <div className="flex flex-col items-start border-l-2 border-zinc-800 pl-6">
             <span className="text-zinc-500 text-xs uppercase tracking-widest mb-1">Coming Soon</span>
             <span className="text-zinc-300 font-bold uppercase italic tracking-tight">
               Sprint Start Analysis 🏃‍♂️
             </span>
-          </div>
+          </div> */}
         </div>
       </div>
 
