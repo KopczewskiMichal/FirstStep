@@ -31,7 +31,7 @@ export default function DrillPage() {
   const playbackVideoRef = useRef<HTMLVideoElement | null>(null);
 
   const [landmarker, setLandmarker] = useState<PoseLandmarker | null>(null);
-  const [isActive, setIsActive] = useState(false);
+  const [isActive, setIsActive] = useState(true);
   const [playbackVideoUrl, setPlaybackUrl] = useState<string | null>(null);
   const [showHelpInfo, setShowHelpInfo] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
