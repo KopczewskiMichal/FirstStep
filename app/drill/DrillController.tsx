@@ -10,7 +10,7 @@ interface Props {
   startRecordingCommandRef: React.RefObject<() => void>;
 }
 
-const DRILL_STRATEGIES = {
+export const DRILL_STRATEGIES = {
   DLINE: (onGo: () => void) => {
     footballRoutine(onGo);
   },
